@@ -5,25 +5,70 @@
   <title>Admin – Relatórios</title>
   <link rel="stylesheet" href="style.css" />
   <style>
-    body { font-family: "Segoe UI", sans-serif; background: #0f172a; color: #e5e7eb; margin: 0; }
-    .admin-header { display: flex; gap: 10px; padding: 20px; border-bottom: 1px solid #1e293b; background: #020617; }
-    .container { max-width: 1200px; margin: 40px auto; padding: 20px; }
-    .card { margin-bottom: 25px; border-radius: 16px; padding: 16px; background: rgba(2,6,23,0.8); border: 1px solid #1e293b; }
-    .subcard { padding: 12px; margin-top: 12px; border-radius: 12px; border: 1px dashed #1e293b; background: rgba(2,6,23,0.6); }
-    .row { display: grid; grid-template-columns: 1fr 1fr; padding: 6px 0; border-bottom: 1px dashed #1e293b; }
-    .row:last-child { border-bottom: none; }
-    .status.ok { color: #22c55e; font-weight: bold; text-shadow: 0 0 6px #22c55e80; }
-    .status.alert { color: #facc15; font-weight: bold; text-shadow: 0 0 6px #facc1580; }
-    .btnPago { padding: 6px 12px; background: #1fb6ff; color: #fff; border: none; border-radius: 6px; cursor: pointer; margin-top: 5px; }
-    .btnPago:hover { background: #0da5e9; }
+    /* Loading bar */
+    #loadingBar {
+      display: none;
+      width: 100%;
+      height: 6px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+    #loadingBar div {
+      height: 100%;
+      width: 0;
+      background: linear-gradient(90deg, #2563eb, #1d4ed8);
+      animation: loading 2s linear infinite;
+    }
+    @keyframes loading {
+      0% { width: 0%; }
+      50% { width: 100%; }
+      100% { width: 0%; }
+    }
+
+    /* Notificações */
+    #notifications {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      z-index: 9999;
+    }
+    .notif {
+      padding: 14px 20px;
+      border-radius: 12px;
+      color: #fff;
+      font-weight: 500;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      backdrop-filter: blur(4px);
+      opacity: 0.95;
+      min-width: 200px;
+    }
+    .notif.success { background: #22c55e; }
+    .notif.error { background: #ef4444; }
+    .notif.info { background: #2563eb; }
+
+    /* Mobile responsiveness */
+    @media (max-width: 768px) {
+      .admin-header { flex-direction: column; gap: 10px; }
+      .search { flex-direction: column; gap: 10px; }
+      .row { grid-template-columns: 1fr 1fr; gap: 8px; }
+      .btnPago { width: 100%; }
+    }
   </style>
 </head>
 <body>
 
 <header class="admin-header">
   <h1>Painel Administrativo</h1>
-  <input type="file" id="pdfFile" />
-  <button onclick="upload()">Upload PDF</button>
+  <div>
+    <input type="file" id="pdfFile" />
+    <button onclick="upload()">Upload PDF</button>
+    <div id="loadingBar"><div></div></div>
+  </div>
 </header>
 
 <div class="container">
@@ -35,24 +80,45 @@
   <main id="adminResult"></main>
 </div>
 
-<script>
-const API_URL = "https://historico-agencias.onrender.com"; // Backend Render
+<!-- Container de notificações -->
+<div id="notifications"></div>
 
+<script>
+const API_URL = "https://historico-agencias.onrender.com"; 
+
+// Função de notificação
+function notify(msg, type="info", duration=3000) {
+  const n = document.createElement("div");
+  n.className = `notif ${type}`;
+  n.textContent = msg;
+  document.getElementById("notifications").appendChild(n);
+  setTimeout(() => n.remove(), duration);
+}
+
+// Upload PDF com barra de loading
 async function upload() {
   const file = document.getElementById("pdfFile").files[0];
-  if (!file) return alert("Selecione um PDF");
+  if (!file) return notify("Selecione um PDF", "error");
 
   const form = new FormData();
   form.append("file", file);
 
-  const res = await fetch(`${API_URL}/api/admin/upload`, { method: "POST", body: form });
-  if (!res.ok) {
-    const text = await res.text();
-    return alert(text);
-  }
+  const loading = document.getElementById("loadingBar");
+  loading.style.display = "block";
 
-  alert("PDF processado com sucesso");
-  loadAllAgencies(); // Recarrega todas as agências após upload
+  try {
+    const res = await fetch(`${API_URL}/api/admin/upload`, { method: "POST", body: form });
+    if (!res.ok) {
+      const text = await res.text();
+      return notify(text, "error");
+    }
+    notify("PDF processado com sucesso", "success");
+    loadAllAgencies(); 
+  } catch(e) {
+    notify("Erro no upload do PDF", "error");
+  } finally {
+    loading.style.display = "none";
+  }
 }
 
 // Carrega os relatórios de uma agência específica
@@ -110,12 +176,15 @@ function renderAgencyCard(code, history, container) {
 
     sub.innerHTML = `
       <h3>Relatório ${date}</h3>
-      <div class="row"><span>Repasse</span><span>R$ ${values.repasse.toFixed(2)}</span></div>
-      <div class="row"><span>Crédito</span><span>R$ ${values.credito.toFixed(2)}</span></div>
+      <div class="row">
+        <span>Repasse</span><span>R$ ${values.repasse.toFixed(2)}</span>
+      </div>
+      <div class="row">
+        <span>Crédito</span><span>R$ ${values.credito.toFixed(2)}</span>
+      </div>
       <p class="status ${values.pago ? "ok" : "alert"}">${status}</p>
       ${!values.pago ? `<button class="btnPago" type="button">Pago</button>` : ""}
     `;
-
     card.appendChild(sub);
 
     if (!values.pago) {
@@ -129,42 +198,45 @@ function renderAgencyCard(code, history, container) {
 
 // Atualiza o status "Pago" via backend
 async function updateReportStatus(code, reference) {
-  const res = await fetch(`${API_URL}/api/admin/report-status`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ agency_code: code, reference, pago: true })
-  });
+  try {
+    const res = await fetch(`${API_URL}/api/admin/report-status`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ agency_code: code, reference, pago: true })
+    });
 
-  if (!res.ok) {
-    const text = await res.text();
-    return alert("Erro ao atualizar status: " + text);
-  }
-
-  // Atualiza visualmente todos os subcards correspondentes
-  document.querySelectorAll(".subcard").forEach(sub => {
-    const h3 = sub.querySelector("h3");
-    if (h3 && h3.textContent.includes(reference)) {
-      const statusEl = sub.querySelector(".status");
-      statusEl.textContent = "Tudo em dia";
-      statusEl.classList.remove("alert");
-      statusEl.classList.add("ok");
-
-      const btn = sub.querySelector(".btnPago");
-      if (btn) btn.remove();
+    if (!res.ok) {
+      const text = await res.text();
+      return notify("Erro ao atualizar status: " + text, "error");
     }
-  });
 
-  // Notifica o index para atualizar automaticamente
-  window.dispatchEvent(new CustomEvent("reportUpdated", { detail: { code } }));
+    // Atualiza visualmente todos os subcards correspondentes
+    document.querySelectorAll(".subcard").forEach(sub => {
+      const h3 = sub.querySelector("h3");
+      if (h3 && h3.textContent.includes(reference)) {
+        const statusEl = sub.querySelector(".status");
+        statusEl.textContent = "Tudo em dia";
+        statusEl.classList.remove("alert");
+        statusEl.classList.add("ok");
+
+        const btn = sub.querySelector(".btnPago");
+        if (btn) btn.remove();
+      }
+    });
+
+    notify(`Status do relatório ${reference} atualizado`, "success");
+
+    // Notifica o index para atualizar automaticamente
+    window.dispatchEvent(new CustomEvent("reportUpdated", { detail: { code } }));
+  } catch(e) {
+    notify("Erro ao atualizar status", "error");
+  }
 }
-
-// (Opcional) Carrega automaticamente todas as agências ao abrir a página
-// window.addEventListener("load", loadAllAgencies);
-
 </script>
 
 </body>
 </html>
+
 
 
 
