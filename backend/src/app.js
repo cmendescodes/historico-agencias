@@ -9,6 +9,9 @@ const adminRoutes = require("./routes/admin");
 
 const app = express(); // ✅ app criado aqui
 
+app.use(cors({
+  origin: "https://historico-agencias.netlify.app" // substitua pela URL real do seu Netlify
+}));
 /* Middlewares */
 app.use(cors());
 app.use(express.json());
