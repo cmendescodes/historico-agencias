@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Histórico da Agência</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div class="container">
+  <h1>Consulta de Agência</h1>
+
+  <div class="search">
+    <input id="code" placeholder="Código da Agência (ex: AG001)" />
+    <button onclick="buscar()">Consultar</button>
+  </div>
+
+  <div id="result"></div>
+</div>
+
+<script>
+async function buscar(codeParam) {
+  const codeInput = document.getElementById("code");
+  const result = document.getElementById("result");
+
+  const code = codeParam || codeInput.value.trim();
+  result.innerHTML = "";
+
+  if (!code) return;
+
+  const agencyRes = await fetch(`/api/agencies/${code}`);
+  if (!agencyRes.ok) return result.innerHTML = "<p>Agência não encontrada</p>";
+  const agency = await agencyRes.json();
+
+  const historyRes = await fetch(`/api/agencies/${code}/history`);
+  if (!historyRes.ok) return result.innerHTML = "<p>Histórico não encontrado</p>";
+  const history = await historyRes.json();
+
+  if (!history.length) return result.innerHTML = "<p>Nenhum relatório encontrado.</p>";
+
+  // Agrupa por referência
+  const grouped = {};
+  history.forEach(h => {
+    if (!grouped[h.reference]) grouped[h.reference] = { repasse: 0, credito: 0, pago: true };
+    grouped[h.reference].repasse += Number(h.repasse);
+    grouped[h.reference].credito += Number(h.credito);
+    if (!h.pago) grouped[h.reference].pago = false;
+  });
+
+  const cards = Object.entries(grouped).map(([date, values]) => {
+    const status = values.pago
+      ? "Tudo em dia"
+      : values.credito > 0
+        ? "Crédito em aberto"
+        : values.repasse > 0
+          ? "Repasse pendente"
+          : "Tudo em dia";
+
+    return `
+      <div class="card">
+        <h2>${agency.code}</h2>
+        <h3>Relatório ${date}</h3>
+        <p class="status ${values.pago ? "ok" : "alert"}">${status}</p>
+        <div class="totals">
+          <span>Repasse: <strong>R$ ${values.repasse.toFixed(2)}</strong></span>
+          <span>Crédito: <strong>R$ ${values.credito.toFixed(2)}</strong></span>
+        </div>
+      </div>
+    `;
+  });
+
+  result.innerHTML = cards.join("");
+}
+
+// Atualiza automaticamente ao clicar em Pago no admin
+window.addEventListener("reportUpdated", (e) => {
+  const code = e.detail.code;
+  if (window.buscar) {
+    buscar(code); // atualiza os cards do index automaticamente
+  }
+});
+
+</script>
+
+</body>
+</html>

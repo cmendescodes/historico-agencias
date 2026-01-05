@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin – Relatórios</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .btnPago {
+      padding: 6px 12px;
+      background: #1fb6ff;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 5px;
+    }
+    .btnPago:hover {
+      background: #0da5e9;
+    }
+    .card { margin-bottom: 20px; border: 1px solid #ccc; padding: 10px; border-radius: 6px; }
+    .subcard { padding: 10px; border-top: 1px solid #eee; margin-top: 5px; }
+    .status.ok { color: green; font-weight: bold; }
+    .status.alert { color: red; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+<header class="admin-header">
+  <h1>Painel Administrativo</h1>
+
+  <input type="file" id="pdfFile" />
+  <button onclick="upload()">Upload PDF</button>
+</header>
+
+<div class="container">
+  <div class="search">
+    <input id="code" placeholder="Código da Agência (ex: AG001)" />
+    <button onclick="load()">Carregar Agência</button>
+  </div>
+
+  <main id="adminResult"></main>
+</div>
+
+<script>
+async function upload() {
+  const file = document.getElementById("pdfFile").files[0];
+  if (!file) return alert("Selecione um PDF");
+
+  const form = new FormData();
+  form.append("file", file);
+
+  const res = await fetch("/api/admin/upload", { method: "POST", body: form });
+
+  if (!res.ok) {
+    const text = await res.text();
+    return alert(text);
+  }
+
+  alert("PDF processado com sucesso");
+}
+
+async function load() {
+  const code = document.getElementById("code").value.trim();
+  const container = document.getElementById("adminResult");
+  container.innerHTML = "";
+
+  if (!code) return;
+
+  // Busca o histórico da agência
+  const historyRes = await fetch(`/api/agencies/${code}/history`);
+  if (!historyRes.ok) {
+    container.innerHTML = "<p>Agência não encontrada</p>";
+    return;
+  }
+
+  const history = await historyRes.json();
+  if (!history.length) {
+    container.innerHTML = "<p>Nenhum relatório encontrado.</p>";
+    return;
+  }
+
+  // Agrupa por referência
+  const grouped = {};
+  history.forEach(h => {
+    if (!grouped[h.reference]) grouped[h.reference] = { repasse: 0, credito: 0, pago: true };
+    grouped[h.reference].repasse += Number(h.repasse);
+    grouped[h.reference].credito += Number(h.credito);
+    // Se algum registro ainda não estiver pago, a referência fica não paga
+    if (!h.pago) grouped[h.reference].pago = false;
+  });
+
+  const card = document.createElement("div");
+  card.className = "card";
+  card.innerHTML = `<h2>${code}</h2>`;
+
+  Object.entries(grouped).forEach(([date, values]) => {
+    const sub = document.createElement("div");
+    sub.className = "subcard";
+
+    // Determina o status do card
+    const status = values.pago
+      ? "Tudo em dia"
+      : values.credito > 0
+        ? "Crédito pendente"
+        : values.repasse > 0
+          ? "Repasse pendente"
+          : "Tudo em dia";
+
+    sub.innerHTML = `
+      <h3>Relatório ${date}</h3>
+      <div class="row"><span>Repasse</span><span>R$ ${values.repasse.toFixed(2)}</span></div>
+      <div class="row"><span>Crédito</span><span>R$ ${values.credito.toFixed(2)}</span></div>
+      <p class="status ${values.pago ? "ok" : "alert"}">${status}</p>
+      ${!values.pago ? `<button class="btnPago" type="button">Pago</button>` : ""}
+    `;
+
+    card.appendChild(sub);
+
+    // Adiciona listener ao botão Pago
+    if (!values.pago) {
+      const btn = sub.querySelector(".btnPago");
+      btn.addEventListener("click", async (e) => {
+        e.preventDefault();
+        // Atualiza todos os reservation_code da reference
+        await updateReportStatus(code, date);
+      });
+    }
+  });
+
+  container.appendChild(card);
+}
+
+
+// PATCH para marcar todos os reservation_code da reference como pago
+async function updateReportStatus(code, reference) {
+  const res = await fetch("/api/admin/report-status", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ agency_code: code, reference, pago: true })
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    return alert("Erro ao atualizar status: " + text);
+  }
+
+  // Atualiza visualmente o card do admin
+  const subcards = document.querySelectorAll(".subcard");
+  subcards.forEach(sub => {
+    const h3 = sub.querySelector("h3");
+    if (h3 && h3.textContent.includes(reference)) {
+      const statusEl = sub.querySelector(".status");
+      statusEl.textContent = "Tudo em dia";
+      statusEl.classList.remove("alert");
+      statusEl.classList.add("ok");
+
+      const btn = sub.querySelector(".btnPago");
+      if (btn) btn.remove();
+    }
+  });
+
+  // Notifica o index para atualizar automaticamente
+  window.dispatchEvent(new CustomEvent("reportUpdated", { detail: { code } }));
+}
+
+
+
+</script>
+
+</body>
+</html>
+
+<!-- <!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<title>Admin – Relatórios</title>
+<link rel="stylesheet" href="style.css" />
+<style>
+  /* ====== Body & Container ====== */
+  body { font-family: "Segoe UI", sans-serif; background: #0f172a; color: #e5e7eb; margin: 0; }
+  .container { max-width: 1400px; margin: 40px auto; padding: 20px; }
+
+  /* ====== Header ====== */
+  .admin-header {
+    display: flex;
+    gap: 15px;
+    padding: 20px;
+    border-bottom: 1px solid #1e293b;
+    background: linear-gradient(135deg,#020617,#0f172a);
+    align-items: center;
+  }
+  .admin-header h1 { margin: 0; font-size: 1.8rem; }
+
+  /* ====== Cards ====== */
+  .card {
+    margin-bottom: 25px;
+    border-radius: 16px;
+    padding: 20px;
+    background: rgba(2,6,23,0.85);
+    border: 1px solid #1e293b;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  }
+  .subcard {
+    padding: 14px;
+    margin-top: 12px;
+    border-radius: 12px;
+    border: 1px dashed #1e293b;
+    background: rgba(2,6,23,0.65);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .subcard:hover { transform: translateY(-2px); box-shadow: 0 6px 14px rgba(0,0,0,0.35); }
+
+  /* ====== Rows ====== */
+  .row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    padding: 6px 0;
+    border-bottom: 1px dashed #1e293b;
+    font-size: 0.95rem;
+  }
+  .row:last-child { border-bottom: none; }
+
+  /* ====== Status ====== */
+  .status.ok { color: #22c55e; font-weight: bold; text-shadow: 0 0 6px #22c55e80; }
+  .status.alert { color: #facc15; font-weight: bold; text-shadow: 0 0 6px #facc1580; }
+
+  /* ====== Buttons ====== */
+  .btnPago {
+    padding: 6px 14px;
+    background: linear-gradient(135deg,#1fb6ff,#2563eb);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 8px;
+    font-weight: bold;
+    transition: transform 0.2s ease, background 0.2s ease;
+  }
+  .btnPago:hover { background: linear-gradient(135deg,#0da5e9,#1d4ed8); transform: translateY(-1px); }
+
+  /* ====== Loader ====== */
+  #adminResult p { font-size: 1rem; text-align: center; margin: 20px 0; }
+</style>
+</head>
+<body>
+
+<header class="admin-header">
+  <h1>Painel Administrativo</h1>
+  <input type="file" id="pdfFile" />
+  <button onclick="upload()">Upload PDF</button>
+</header>
+
+<div class="container" id="adminResult"></div>
+
+<script>
+async function upload() {
+  const file = document.getElementById("pdfFile").files[0];
+  if (!file) return alert("Selecione um PDF");
+
+  const form = new FormData();
+  form.append("file", file);
+
+  const res = await fetch("/api/admin/upload", { method: "POST", body: form });
+  if (!res.ok) {
+    const text = await res.text();
+    return alert(text);
+  }
+
+  alert("PDF processado com sucesso");
+  loadAllAgencies(); // recarrega todas as agências após upload
+}
+
+// ====== Carrega todas as agências ======
+async function loadAllAgencies() {
+  const container = document.getElementById("adminResult");
+  container.innerHTML = "<p>Carregando todas as agências...</p>";
+
+  try {
+    const res = await fetch("/api/agencies");
+    const text = await res.text(); // pega o retorno bruto
+    let agencies = [];
+    try {
+      agencies = JSON.parse(text); // tenta parsear JSON
+    } catch (e) {
+      throw new Error("Retorno do servidor não é JSON: " + text.substring(0,100));
+    }
+
+    container.innerHTML = "";
+    for (const agency of agencies) {
+      await loadAgencyReports(agency.code, container);
+    }
+  } catch (err) {
+    container.innerHTML = `<p>Erro ao carregar agências: ${err.message}</p>`;
+  }
+}
+
+
+// ====== Carrega relatórios de cada agência ======
+async function loadAgencyReports(code, container) {
+  try {
+    const historyRes = await fetch(`/api/agencies/${code}/history`);
+    if (!historyRes.ok) throw new Error(historyRes.statusText);
+
+    const history = await historyRes.json();
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `<h2>Agência ${code}</h2>`;
+
+    if (!history.length) {
+      card.innerHTML += "<p>Nenhum relatório encontrado.</p>";
+      container.appendChild(card);
+      return;
+    }
+
+    const grouped = {};
+    history.forEach(h => {
+      if (!grouped[h.reference]) grouped[h.reference] = { repasse: 0, credito: 0, pago: true };
+      grouped[h.reference].repasse += Number(h.repasse);
+      grouped[h.reference].credito += Number(h.credito);
+      if (!h.pago) grouped[h.reference].pago = false;
+    });
+
+    Object.entries(grouped).forEach(([date, values]) => {
+      const sub = document.createElement("div");
+      sub.className = "subcard";
+
+      const status = values.pago
+        ? "Tudo em dia"
+        : values.credito > 0
+          ? "Crédito pendente"
+          : values.repasse > 0
+            ? "Repasse pendente"
+            : "Tudo em dia";
+
+      sub.innerHTML = `
+        <h3>Relatório ${date}</h3>
+        <div class="row"><span>Repasse</span><span>R$ ${values.repasse.toFixed(2)}</span></div>
+        <div class="row"><span>Crédito</span><span>R$ ${values.credito.toFixed(2)}</span></div>
+        <p class="status ${values.pago ? "ok" : "alert"}">${status}</p>
+        ${!values.pago ? `<button class="btnPago" type="button">Pago</button>` : ""}
+      `;
+
+      card.appendChild(sub);
+
+      if (!values.pago) {
+        const btn = sub.querySelector(".btnPago");
+        btn.addEventListener("click", async () => {
+          await updateReportStatus(code, date);
+        });
+      }
+    });
+
+    container.appendChild(card);
+  } catch (err) {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `<h2>${code}</h2><p>Erro ao carregar relatórios: ${err.message}</p>`;
+    container.appendChild(card);
+  }
+}
+
+// ====== Atualiza status "Pago" ======
+async function updateReportStatus(code, reference) {
+  try {
+    const res = await fetch("/api/admin/report-status", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ agency_code: code, reference, status: true })
+    });
+
+    if (!res.ok) throw new Error(await res.text());
+
+    const subcards = document.querySelectorAll(".subcard");
+    subcards.forEach(sub => {
+      const h3 = sub.querySelector("h3");
+      if (h3 && h3.textContent.includes(reference)) {
+        const statusEl = sub.querySelector(".status");
+        statusEl.textContent = "Tudo em dia";
+        statusEl.classList.remove("alert");
+        statusEl.classList.add("ok");
+        const btn = sub.querySelector(".btnPago");
+        if (btn) btn.remove();
+      }
+    });
+  } catch (err) {
+    alert("Erro ao atualizar status: " + err.message);
+  }
+}
+
+// ====== Carrega tudo ao abrir ======
+window.addEventListener("load", loadAllAgencies);
+</script>
+
+</body>
+</html> -->
+

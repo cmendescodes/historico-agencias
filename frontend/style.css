@@ -1,0 +1,136 @@
+/* Reset básico e fonte futurista */
+* {
+  box-sizing: border-box;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  transition: all 0.3s ease;
+}
+
+body {
+  margin: 0;
+  background: linear-gradient(135deg, #0a0f1c, #1b263b);
+  color: #e5e7eb;
+  font-size: 16px;
+}
+
+/* Container centralizado com sombra sutil */
+.container {
+  max-width: 950px;
+  margin: 50px auto;
+  padding: 30px;
+  background: rgba(10, 15, 28, 0.7);
+  border-radius: 20px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Títulos sofisticados */
+h1, h2, h3 {
+  margin: 0 0 12px;
+  font-weight: 600;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+  letter-spacing: 0.5px;
+}
+
+/* Barra de busca com efeito glow */
+.search {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 35px;
+}
+
+input {
+  flex: 1;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(5, 10, 25, 0.6);
+  color: #e5e7eb;
+  backdrop-filter: blur(6px);
+  box-shadow: inset 0 1px 3px rgba(255, 255, 255, 0.05);
+}
+
+input:focus {
+  outline: none;
+  border: 1px solid #2563eb;
+  box-shadow: 0 0 8px #2563ebaa;
+}
+
+/* Botões high-tech */
+button {
+  padding: 12px 18px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: white;
+  cursor: pointer;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.5);
+}
+
+button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.6);
+}
+
+/* Cards com efeito glassmorphism e bordas neon */
+.card {
+  background: rgba(2, 6, 23, 0.8);
+  border-radius: 18px;
+  padding: 20px;
+  margin-bottom: 22px;
+  border: 1px solid rgba(37, 99, 235, 0.4);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+}
+
+.subcard {
+  background: rgba(2, 6, 23, 0.6);
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  padding: 14px;
+  margin-top: 14px;
+}
+
+/* Grid futurista */
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr auto;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
+.row:last-child {
+  border-bottom: none;
+}
+
+/* Status com neon */
+.status.ok {
+  color: #22c55e;
+  text-shadow: 0 0 6px #22c55e80;
+}
+
+.status.alert {
+  color: #facc15;
+  text-shadow: 0 0 6px #facc1580;
+}
+
+/* Totais com destaque */
+.totals {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 14px;
+  font-weight: 600;
+}
+
+/* Header administrativo futurista */
+.admin-header {
+  display: flex;
+  gap: 12px;
+  padding: 22px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  background: rgba(5,10,25,0.7);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
