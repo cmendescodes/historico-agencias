@@ -1,6 +1,272 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+<meta charset="UTF-8" />
+<title>Admin – Relatórios</title>
+<link rel="stylesheet" href="style.css" />
+<style>
+  /* ====== Login Overlay ====== */
+  #loginOverlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(15,23,42,0.95);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    flex-direction: column;
+    color: #fff;
+    font-family: "Segoe UI", sans-serif;
+  }
+  #loginBox {
+    background: #1e293b;
+    padding: 40px 30px;
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    text-align: center;
+    width: 320px;
+  }
+  #loginBox h2 { margin-bottom: 20px; }
+  #loginBox input {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: none;
+    margin-bottom: 16px;
+    font-size: 1rem;
+  }
+  #loginBox button {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg,#1fb6ff,#2563eb);
+    color: #fff;
+    font-weight: bold;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.2s ease, background 0.2s ease;
+  }
+  #loginBox button:hover { background: linear-gradient(135deg,#0da5e9,#1d4ed8); transform: translateY(-1px); }
+  #loginLoading {
+    display: none;
+    height: 4px;
+    width: 100%;
+    background: rgba(255,255,255,0.1);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 12px;
+  }
+  #loginLoading div {
+    height: 100%;
+    width: 0;
+    background: linear-gradient(90deg, #2563eb, #1d4ed8);
+    animation: loadAnim 1.5s linear infinite;
+  }
+  @keyframes loadAnim {
+    0% { width: 0%; }
+    50% { width: 100%; }
+    100% { width: 0%; }
+  }
+
+  /* ====== Restante do Admin ====== */
+  body { font-family: "Segoe UI", sans-serif; background: #0f172a; color: #e5e7eb; margin: 0; }
+  .admin-header { display: flex; gap: 15px; padding: 20px; border-bottom: 1px solid #1e293b; background: linear-gradient(135deg,#020617,#0f172a); align-items: center; flex-wrap: wrap; }
+  .container { max-width: 1400px; margin: 40px auto; padding: 20px; }
+  .card { margin-bottom: 25px; border-radius: 16px; padding: 20px; background: rgba(2,6,23,0.85); border: 1px solid #1e293b; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+  .subcard { padding: 14px; margin-top: 12px; border-radius: 12px; border: 1px dashed #1e293b; background: rgba(2,6,23,0.65); transition: transform 0.2s ease, box-shadow 0.2s ease; }
+  .subcard:hover { transform: translateY(-2px); box-shadow: 0 6px 14px rgba(0,0,0,0.35); }
+  .row { display: grid; grid-template-columns: 1fr 1fr; padding: 6px 0; border-bottom: 1px dashed #1e293b; font-size: 0.95rem; }
+  .row:last-child { border-bottom: none; }
+  .status.ok { color: #22c55e; font-weight: bold; text-shadow: 0 0 6px #22c55e80; }
+  .status.alert { color: #facc15; font-weight: bold; text-shadow: 0 0 6px #facc1580; }
+  .btnPago { padding: 6px 14px; background: linear-gradient(135deg,#1fb6ff,#2563eb); color: #fff; border: none; border-radius: 8px; cursor: pointer; margin-top: 8px; font-weight: bold; transition: transform 0.2s ease, background 0.2s ease; }
+  .btnPago:hover { background: linear-gradient(135deg,#0da5e9,#1d4ed8); transform: translateY(-1px); }
+  #notifications { position: fixed; top: 20px; right: 20px; display: flex; flex-direction: column; gap: 12px; z-index: 9999; }
+  .notif { padding: 14px 20px; border-radius: 12px; color: #fff; font-weight: 500; box-shadow: 0 4px 12px rgba(0,0,0,0.3); backdrop-filter: blur(4px); opacity: 0.95; min-width: 200px; }
+  .notif.success { background: #22c55e; }
+  .notif.error { background: #ef4444; }
+  .notif.info { background: #2563eb; }
+</style>
+</head>
+<body>
+
+<!-- Login Overlay -->
+<div id="loginOverlay">
+  <div id="loginBox">
+    <h2>Login Administrativo</h2>
+    <input type="password" id="loginPassword" placeholder="Digite a senha" />
+    <button onclick="login()">Entrar</button>
+    <div id="loginLoading"><div></div></div>
+    <p id="loginError" style="color:#f87171; margin-top:10px; display:none;">Senha incorreta!</p>
+  </div>
+</div>
+
+<!-- Admin Content -->
+<div id="adminContent" style="display:none;">
+  <header class="admin-header">
+    <h1>Painel Administrativo - Escuna (Coletivo)</h1>
+    <div>
+      <input type="file" id="pdfFile" />
+      <button onclick="upload()">Upload PDF</button>
+      <div id="loadingBar"><div></div></div>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="search">
+      <input id="code" placeholder="Código da Agência (ex: AG001)" />
+      <button onclick="loadAgency()">Carregar Agência</button>
+    </div>
+
+    <main id="adminResult"></main>
+  </div>
+
+  <div id="notifications"></div>
+</div>
+
+<script>
+const PASSWORD = "adm123";
+
+// ====== Login ======
+function login() {
+  const input = document.getElementById("loginPassword").value;
+  const error = document.getElementById("loginError");
+  const loading = document.getElementById("loginLoading");
+  error.style.display = "none";
+  loading.style.display = "block";
+
+  setTimeout(() => {
+    loading.style.display = "none";
+    if (input === PASSWORD) {
+      document.getElementById("loginOverlay").style.display = "none";
+      document.getElementById("adminContent").style.display = "block";
+    } else {
+      error.style.display = "block";
+    }
+  }, 1000); // animação de carregamento
+}
+
+// ====== Notificações ======
+function notify(msg, type="info", duration=3000) {
+  const n = document.createElement("div");
+  n.className = `notif ${type}`;
+  n.textContent = msg;
+  document.getElementById("notifications").appendChild(n);
+  setTimeout(() => n.remove(), duration);
+}
+
+// ====== PDF Upload ======
+async function upload() {
+  const file = document.getElementById("pdfFile").files[0];
+  if (!file) return notify("Selecione um PDF", "error");
+
+  const form = new FormData();
+  form.append("file", file);
+
+  const loading = document.getElementById("loadingBar");
+  loading.style.display = "block";
+
+  try {
+    const res = await fetch(`https://historico-agencias.onrender.com/api/admin/upload`, { method: "POST", body: form });
+    if (!res.ok) {
+      const text = await res.text();
+      return notify(text, "error");
+    }
+    notify("PDF processado com sucesso", "success");
+    loadAllAgencies();
+  } catch(e) {
+    notify("Erro no upload do PDF", "error");
+  } finally {
+    loading.style.display = "none";
+  }
+}
+
+// ====== Carregar Agência ======
+async function loadAgency() {
+  const code = document.getElementById("code").value.trim();
+  const container = document.getElementById("adminResult");
+  container.innerHTML = "";
+  if (!code) return;
+
+  container.innerHTML = "<p>Carregando...</p>";
+  try {
+    const res = await fetch(`https://historico-agencias.onrender.com/api/agencies/${code}/history`);
+    if (!res.ok) throw new Error("Agência não encontrada");
+    const history = await res.json();
+    container.innerHTML = "";
+    if (!history.length) { container.innerHTML = "<p>Nenhum relatório encontrado.</p>"; return; }
+    renderAgencyCard(code, history, container);
+  } catch (err) {
+    container.innerHTML = `<p style="color:red;">${err.message}</p>`;
+  }
+}
+
+// ====== Render Cards ======
+function renderAgencyCard(code, history, container) {
+  const grouped = {};
+  history.forEach(h => {
+    if (!grouped[h.reference]) grouped[h.reference] = { repasse: 0, credito: 0, pago: true };
+    grouped[h.reference].repasse += Number(h.repasse);
+    grouped[h.reference].credito += Number(h.credito);
+    if (!h.pago) grouped[h.reference].pago = false;
+  });
+
+  const card = document.createElement("div");
+  card.className = "card";
+  card.innerHTML = `<h2>Agência ${code}</h2>`;
+  container.appendChild(card);
+
+  Object.entries(grouped).forEach(([date, values]) => {
+    const sub = document.createElement("div");
+    sub.className = "subcard";
+    const status = values.pago ? "Tudo em dia" : values.credito>0 ? "Crédito pendente" : values.repasse>0 ? "Repasse pendente" : "Tudo em dia";
+    sub.innerHTML = `<h3>Relatório ${date}</h3>
+      <div class="row"><span>Repasse</span><span>R$ ${values.repasse.toFixed(2)}</span></div>
+      <div class="row"><span>Crédito</span><span>R$ ${values.credito.toFixed(2)}</span></div>
+      <p class="status ${values.pago?"ok":"alert"}">${status}</p>
+      ${!values.pago?`<button class="btnPago" type="button">Pago</button>`:""}`;
+    card.appendChild(sub);
+
+    if (!values.pago) {
+      const btn = sub.querySelector(".btnPago");
+      btn.addEventListener("click", async()=>{ await updateReportStatus(code,date); });
+    }
+  });
+}
+
+// ====== Atualiza Status ======
+async function updateReportStatus(code, reference) {
+  try {
+    const res = await fetch(`https://historico-agencias.onrender.com/api/admin/report-status`, {
+      method:"PATCH",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({ agency_code: code, reference, pago:true })
+    });
+    if(!res.ok){ const text = await res.text(); return notify("Erro: "+text,"error"); }
+
+    document.querySelectorAll(".subcard").forEach(sub=>{
+      const h3 = sub.querySelector("h3");
+      if(h3 && h3.textContent.includes(reference)){
+        const statusEl = sub.querySelector(".status");
+        statusEl.textContent="Tudo em dia";
+        statusEl.classList.remove("alert");
+        statusEl.classList.add("ok");
+        const btn = sub.querySelector(".btnPago"); if(btn) btn.remove();
+      }
+    });
+    notify(`Status do relatório ${reference} atualizado`, "success");
+  } catch(e){ notify("Erro ao atualizar status","error"); }
+}
+</script>
+
+</body>
+</html>
+
+
+<!-- <!DOCTYPE html>
+<html lang="pt-BR">
+<head>
   <meta charset="UTF-8" />
   <title>Admin – Relatórios</title>
   <link rel="stylesheet" href="style.css" />
@@ -235,7 +501,7 @@ async function updateReportStatus(code, reference) {
 </script>
 
 </body>
-</html>
+</html> -->
 
 
 
