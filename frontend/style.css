@@ -1,8 +1,10 @@
-/* Reset básico e fonte futurista */
+/* =================================
+   RESET GLOBAL
+================================= */
 * {
   box-sizing: border-box;
   font-family: "Segoe UI", system-ui, sans-serif;
-  transition: all 0.3s ease;
+  transition: all 0.25s ease;
 }
 
 body {
@@ -10,13 +12,16 @@ body {
   background: linear-gradient(135deg, #0a0f1c, #1b263b);
   color: #e5e7eb;
   font-size: 16px;
+  line-height: 1.55;
 }
 
-/* Container centralizado com sombra sutil */
+/* =================================
+   CONTAINER
+================================= */
 .container {
   max-width: 950px;
   margin: 50px auto;
-  padding: 30px;
+  padding: 32px;
   background: rgba(10, 15, 28, 0.7);
   border-radius: 20px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
@@ -24,15 +29,23 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-/* Títulos sofisticados */
+/* =================================
+   TIPOGRAFIA
+================================= */
 h1, h2, h3 {
-  margin: 0 0 12px;
+  margin: 0 0 14px;
   font-weight: 600;
-  text-shadow: 0 1px 4px rgba(0,0,0,0.5);
   letter-spacing: 0.5px;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.5);
 }
 
-/* Barra de busca com efeito glow */
+h1 { font-size: 2rem; }
+h2 { font-size: 1.5rem; }
+h3 { font-size: 1.15rem; }
+
+/* =================================
+   BUSCA
+================================= */
 .search {
   display: flex;
   gap: 12px;
@@ -41,32 +54,35 @@ h1, h2, h3 {
 
 input {
   flex: 1;
-  padding: 12px 14px;
+  min-width: 0;
+  padding: 14px 16px;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   background: rgba(5, 10, 25, 0.6);
   color: #e5e7eb;
-  backdrop-filter: blur(6px);
-  box-shadow: inset 0 1px 3px rgba(255, 255, 255, 0.05);
+  font-size: 0.95rem;
 }
 
 input:focus {
   outline: none;
-  border: 1px solid #2563eb;
+  border-color: #2563eb;
   box-shadow: 0 0 8px #2563ebaa;
 }
 
-/* Botões high-tech */
+/* =================================
+   BOTÕES
+================================= */
 button {
-  padding: 12px 18px;
-  border: none;
+  padding: 14px 20px;
   border-radius: 12px;
+  border: none;
   background: linear-gradient(135deg, #2563eb, #1d4ed8);
-  color: white;
-  cursor: pointer;
+  color: #fff;
   font-weight: 500;
-  letter-spacing: 0.5px;
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.5);
+  cursor: pointer;
+  letter-spacing: 0.4px;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.45);
+  white-space: nowrap;
 }
 
 button:hover {
@@ -74,11 +90,13 @@ button:hover {
   box-shadow: 0 6px 18px rgba(37, 99, 235, 0.6);
 }
 
-/* Cards com efeito glassmorphism e bordas neon */
+/* =================================
+   CARDS
+================================= */
 .card {
   background: rgba(2, 6, 23, 0.8);
   border-radius: 18px;
-  padding: 20px;
+  padding: 22px;
   margin-bottom: 22px;
   border: 1px solid rgba(37, 99, 235, 0.4);
   box-shadow: 0 4px 16px rgba(0,0,0,0.4);
@@ -88,16 +106,19 @@ button:hover {
   background: rgba(2, 6, 23, 0.6);
   border: 1px dashed rgba(255, 255, 255, 0.1);
   border-radius: 14px;
-  padding: 14px;
+  padding: 16px;
   margin-top: 14px;
 }
 
-/* Grid futurista */
+/* =================================
+   GRID (DESKTOP)
+================================= */
 .row {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr auto;
   gap: 12px;
-  padding: 8px 0;
+  padding: 10px 0;
+  align-items: center;
   border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
 }
 
@@ -105,7 +126,9 @@ button:hover {
   border-bottom: none;
 }
 
-/* Status com neon */
+/* =================================
+   STATUS
+================================= */
 .status.ok {
   color: #22c55e;
   text-shadow: 0 0 6px #22c55e80;
@@ -116,21 +139,99 @@ button:hover {
   text-shadow: 0 0 6px #facc1580;
 }
 
-/* Totais com destaque */
+/* =================================
+   TOTAIS
+================================= */
 .totals {
   display: flex;
   justify-content: space-between;
-  margin-top: 14px;
+  gap: 16px;
+  margin-top: 16px;
   font-weight: 600;
 }
 
-/* Header administrativo futurista */
+/* =================================
+   HEADER ADMIN
+================================= */
 .admin-header {
   display: flex;
+  flex-wrap: wrap;
   gap: 12px;
   padding: 22px;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
   background: rgba(5,10,25,0.7);
+  border-bottom: 1px solid rgba(255,255,255,0.1);
   backdrop-filter: blur(8px);
   box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+/* =================================
+   MOBILE — AJUSTE REAL
+================================= */
+@media (max-width: 768px) {
+
+  body {
+    font-size: 15px;
+  }
+
+  .container {
+    margin: 20px 12px;
+    padding: 20px;
+    border-radius: 16px;
+  }
+
+  h1 { font-size: 1.6rem; }
+  h2 { font-size: 1.3rem; }
+  h3 { font-size: 1.05rem; }
+
+  .search {
+    flex-direction: column;
+  }
+
+  input,
+  button {
+    width: 100%;
+    padding: 14px;
+    font-size: 1rem;
+  }
+
+  /* GRID MOBILE → VERTICAL */
+  .row {
+    grid-template-columns: 1fr;
+    gap: 6px;
+    padding: 14px 0;
+  }
+
+  .row > * {
+    font-size: 0.95rem;
+  }
+
+  .totals {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .admin-header {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 768px) {
+
+  .search {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .search input,
+  .search button {
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: none !important;
+  }
+
+  input#code {
+    display: block;
+  }
 }
