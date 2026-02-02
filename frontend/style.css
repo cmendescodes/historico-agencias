@@ -945,7 +945,7 @@ body.gate-open {
   white-space: normal;         /* <<< PERMITE QUEBRA */
   text-align: center;
   line-height: 1.35;
-  word-break: break-word;      /* <<< EVITA ESTOURO */
+  overflow-wrap: break-word;  /* <<< CORRETO */
 
   opacity: 0;
   pointer-events: none;
@@ -954,9 +954,7 @@ body.gate-open {
 
 @media (max-width: 480px) {
   .action-btn::after {
-    left: 50%;
-    transform: translateX(-50%);
-    max-width: 85vw; /* <<< nunca passa da tela */
+    max-width: min(85vw, 280px);
   }
 }
 
