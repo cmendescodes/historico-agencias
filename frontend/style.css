@@ -3,7 +3,7 @@
 ================================= */
 * {
   box-sizing: border-box;
-  font-family: "Segoe UI", system-ui, sans-serif;
+  font-family:"Segoe UI", Roboto, system-ui, -apple-system, "Helvetica Neue", Arial;
   transition: all 0.25s ease;
 }
 
@@ -374,7 +374,7 @@ button:hover {
   align-items: center;
   justify-content: center;
 
-  background: rgba(10, 21, 38, 0.88); 
+  background: radial-gradient(circle at top, #0b2a44, #020617); 
   backdrop-filter: blur(35px);
 
   transition: opacity 0.35s ease, visibility 0.35s ease;
@@ -430,7 +430,7 @@ body.gate-open {
    TÍTULO / BRAND
 ========================= */
 .region-card h1 {
-  font-size: 26px;
+  font-size: 50px;
   font-weight: 700;
   letter-spacing: 0.6px;
   margin-bottom: 14px;
@@ -467,6 +467,7 @@ body.gate-open {
 .nextur-digital {
   font-size: 18px;
   font-weight: 600;
+  letter-spacing: 0.10em;
 
   background: linear-gradient(
     110deg,
@@ -495,7 +496,7 @@ body.gate-open {
    SUBTÍTULO / SELECTOR
 ========================= */
 .nextur-subtitle {
-  background: rgba(15,23,42,0.78);
+  background: rgba(15,23,42,0.38);
   border: 1px solid var(--border-soft);
   border-radius: 16px;
   padding: 16px;
@@ -647,7 +648,7 @@ body.gate-open {
   min-width: 220px;
   z-index: 10002;
 
-  background: rgba(12,14,20,0.95);
+  background: rgba(12,14,20,0.45);
   backdrop-filter: blur(14px);
   border-radius: 16px;
   border: 1px solid var(--border-soft);
@@ -887,7 +888,7 @@ body.gate-open {
   }
 
   .region-card h1 {
-    font-size: 24px;
+    font-size: 50px;
   }
 
   .regions {
