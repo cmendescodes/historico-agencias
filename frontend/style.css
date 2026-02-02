@@ -426,14 +426,18 @@ body.gate-open {
   text-align: center;
 }
 
+
+
 /* =========================
    TÍTULO / BRAND
 ========================= */
 .region-card h1 {
-  font-size: 50px;
-  font-weight: 700;
-  letter-spacing: 0.6px;
-  margin-bottom: 14px;
+  font-size: 3.2rem;
+  font-weight: 800;
+  letter-spacing: 2px;
+  margin-bottom: 8px;
+  position: relative;
+  z-index: 5;
 
   display: flex;
   justify-content: center;
@@ -463,6 +467,7 @@ body.gate-open {
   50% { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
 }
+
 
 .nextur-digital {
   font-size: 18px;
@@ -760,7 +765,7 @@ body.gate-open {
 }
 
 .region {
-  background: linear-gradient(180deg, #0c1c3d94, #0f173d2a);
+  background: linear-gradient(180deg, #0c1c3d94, #151f521b);
   border: 1px solid rgba(148,163,184,0.2);
   border-radius: 16px;
 
@@ -787,7 +792,7 @@ body.gate-open {
   background: linear-gradient(
     180deg,
     rgba(56,189,248,0.14),
-    rgba(2,6,23,0.95)
+    rgba(2, 6, 23, 0.686)
   );
 }
 
