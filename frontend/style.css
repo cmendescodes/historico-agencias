@@ -929,7 +929,6 @@ body.gate-open {
   opacity: 0.8;
 }
 
-/* Tooltip */
 .action-btn::after {
   content: attr(data-tooltip);
   position: absolute;
@@ -941,11 +940,26 @@ body.gate-open {
   padding: 6px 10px;
   font-size: 0.7rem;
   border-radius: 8px;
-  white-space: nowrap;
+
+  max-width: 240px;            /* <<< LIMITA LARGURA */
+  white-space: normal;         /* <<< PERMITE QUEBRA */
+  text-align: center;
+  line-height: 1.35;
+  word-break: break-word;      /* <<< EVITA ESTOURO */
+
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.2s ease, transform 0.2s ease;
 }
+
+@media (max-width: 480px) {
+  .action-btn::after {
+    left: 50%;
+    transform: translateX(-50%);
+    max-width: 85vw; /* <<< nunca passa da tela */
+  }
+}
+
 
 /* Setinha do tooltip */
 .action-btn::before {
