@@ -139,7 +139,7 @@ window.addEventListener("reportUpdated", (e) => {
     <div id="login-loader" class="login-loader" style="display:none;">
       <div class="loader-card">
         <div class="spinner"></div>
-        <div class="loader-text">Validando acesso...</div>
+        <div class="loader-text">Sincronizando…</div>
       </div>
     </div>
 
@@ -194,6 +194,73 @@ window.addEventListener("reportUpdated", (e) => {
 <script>
 const API_URL = "https://historico-agencias.onrender.com"; // Backend Render
 
+// async function buscar(codeParam) {
+//   const codeInput = document.getElementById("code");
+//   const result = document.getElementById("result");
+
+//   const code = codeParam || codeInput.value.trim();
+//   result.innerHTML = "";
+
+//   if (!code) return;
+
+//   // Mostra loader
+//   result.innerHTML = "<p>Carregando...</p>";
+
+//   try {
+//     // Busca agência
+//     const agencyRes = await fetch(`${API_URL}/api/agencies/${code}`);
+//     if (!agencyRes.ok) throw new Error("Agência não encontrada");
+//     const agency = await agencyRes.json();
+
+//     // Busca histórico
+//     const historyRes = await fetch(`${API_URL}/api/agencies/${code}/history`);
+//     if (!historyRes.ok) throw new Error("Histórico não encontrado");
+//     const history = await historyRes.json();
+
+//     if (!history.length) {
+//       result.innerHTML = "<p>Nenhum relatório encontrado.</p>";
+//       return;
+//     }
+
+//     // Agrupa por referência
+//     const grouped = {};
+//     history.forEach(h => {
+//       if (!grouped[h.reference]) grouped[h.reference] = { repasse: 0, credito: 0, pago: true };
+//       grouped[h.reference].repasse += Number(h.repasse);
+//       grouped[h.reference].credito += Number(h.credito);
+//       if (!h.pago) grouped[h.reference].pago = false;
+//     });
+
+//     // Monta cards
+//     const cards = Object.entries(grouped).map(([date, values]) => {
+//       const status = values.pago
+//         ? "Tudo em dia"
+//         : values.credito > 0
+//           ? "Crédito em aberto"
+//           : values.repasse > 0
+//             ? "Repasse pendente"
+//             : "Tudo em dia";
+
+//       return `
+//         <div class="card">
+//           <h2>${agency.code}</h2>
+//           <h3>Relatório ${date}</h3>
+//           <p class="status ${values.pago ? "ok" : "alert"}">${status}</p>
+//           <div class="totals">
+//             <span>Repasse: <strong>R$ ${values.repasse.toFixed(2)}</strong></span>
+//             <span>Crédito: <strong>R$ ${values.credito.toFixed(2)}</strong></span>
+//           </div>
+//         </div>
+//       `;
+//     });
+
+//     result.innerHTML = cards.join("");
+
+//   } catch (err) {
+//     result.innerHTML = `<p style="color:red;">${err.message}</p>`;
+//   }
+// }
+
 async function buscar(codeParam) {
   const codeInput = document.getElementById("code");
   const result = document.getElementById("result");
@@ -225,7 +292,9 @@ async function buscar(codeParam) {
     // Agrupa por referência
     const grouped = {};
     history.forEach(h => {
-      if (!grouped[h.reference]) grouped[h.reference] = { repasse: 0, credito: 0, pago: true };
+      if (!grouped[h.reference]) {
+        grouped[h.reference] = { repasse: 0, credito: 0, pago: true };
+      }
       grouped[h.reference].repasse += Number(h.repasse);
       grouped[h.reference].credito += Number(h.credito);
       if (!h.pago) grouped[h.reference].pago = false;
@@ -245,10 +314,23 @@ async function buscar(codeParam) {
         <div class="card">
           <h2>${agency.code}</h2>
           <h3>Relatório ${date}</h3>
+
           <p class="status ${values.pago ? "ok" : "alert"}">${status}</p>
+
           <div class="totals">
             <span>Repasse: <strong>R$ ${values.repasse.toFixed(2)}</strong></span>
             <span>Crédito: <strong>R$ ${values.credito.toFixed(2)}</strong></span>
+          </div>
+
+          <!-- AÇÕES (COMING SOON) -->
+          <div class="card-actions">
+            <button class="action-btn disabled" data-tooltip="Pagamento automático pelo sistema: Recurso em breve">
+              📄 Copia e Cola
+            </button>
+
+            <button class="action-btn disabled" data-tooltip="Resgate automático pelo sistema: Recurso em breve">
+              💳 Resgatar crédito
+            </button>
           </div>
         </div>
       `;
@@ -260,6 +342,7 @@ async function buscar(codeParam) {
     result.innerHTML = `<p style="color:red;">${err.message}</p>`;
   }
 }
+
 
 // Atualiza automaticamente ao clicar em Pago no admin
 window.addEventListener("reportUpdated", (e) => {

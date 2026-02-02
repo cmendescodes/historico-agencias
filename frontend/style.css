@@ -900,3 +900,77 @@ body.gate-open {
     gap: 12px;
   }
 }
+
+/* Área de ações no card */
+.card-actions {
+  display: flex;
+  display: flex;
+  justify-content: center; /* <<< CENTRALIZA NO DESKTOP */
+  gap: 10px;
+  margin-top: 14px;
+}
+
+/* Botões cinza (coming soon) */
+.action-btn {
+  position: relative;
+  padding: 6px 12px;
+  font-size: 0.75rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.25);
+  background: rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.6);
+  cursor: not-allowed;
+  white-space: nowrap;
+  transition: background 0.2s ease, border 0.2s ease;
+}
+
+/* Estado disabled visual */
+.action-btn.disabled {
+  opacity: 0.8;
+}
+
+/* Tooltip */
+.action-btn::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(20, 20, 25, 0.95);
+  color: #fff;
+  padding: 6px 10px;
+  font-size: 0.7rem;
+  border-radius: 8px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+/* Setinha do tooltip */
+.action-btn::before {
+  content: "";
+  position: absolute;
+  bottom: calc(100% + 2px);
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 6px;
+  border-style: solid;
+  border-color: rgba(20,20,25,0.95) transparent transparent transparent;
+  opacity: 0;
+}
+
+/* Hover desktop */
+@media (hover: hover) {
+  .action-btn:hover::after,
+  .action-btn:hover::before {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-2px);
+  }
+}
+
+/* Mobile: tooltip ao tocar */
+.action-btn:active::after,
+.action-btn:active::before {
+  opacity: 1;
+}
