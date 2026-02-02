@@ -10,7 +10,7 @@ const adminRoutes = require("./routes/admin");
 const app = express(); // ✅ app criado aqui
 
 app.use(cors({
-  origin: "https://nexturfinanceiro.netlify.app" // substitua pela URL real do seu Netlify
+  origin: "https://nexturpay.digital" // substitua pela URL real do seu Netlify
 }));
 /* Middlewares */
 app.use(cors());

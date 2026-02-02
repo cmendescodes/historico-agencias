@@ -90,11 +90,87 @@ window.addEventListener("reportUpdated", (e) => {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NEXTUR® Financeiro</title>
+  <title>NEXTUR Pay</title>
   <link rel="stylesheet" href="style.css" />
   <link rel="icon" href="https://i.ibb.co/HDw5G2L6/file-0000000063d471f591f25e75880d3cc5-1.png" type="image/png">
 </head>
 <body>
+
+<div id="region-gate" class="region-gate">
+  <div class="region-card">
+    <h1>NEXTUR
+      <span class="nextur-digital">Pay</span>
+    </h1>
+    <div class="nextur-subtitle equipment-selector">
+      <span class="label"></span>
+
+      <div class="equipment-current">
+        <span class="label">Equipamento:</span>
+        <span class="value" id="equipamentoAtual">Escuna</span>
+
+        <button class="btn-change" onclick="toggleEquipamentos()">
+          Trocar
+        </button>
+      </div>
+
+      <div class="equipment-dropdown" id="equipmentDropdown">
+        <div class="equipment-item active">
+          <span>Escuna</span>
+        </div>
+
+        <div class="equipment-item disabled">
+          <span>Jipe</span>
+          <em>Em breve</em>
+        </div>
+
+        <div class="equipment-item disabled">
+          <span>Flexboat</span>
+          <em>Em breve</em>
+        </div>
+
+        <div class="equipment-item disabled">
+          <span>Lancha</span>
+          <em>Em breve</em>
+        </div>
+      </div>
+    </div>
+    <p>Selecione a região para continuar</p>
+
+    <div id="login-loader" class="login-loader" style="display:none;">
+      <div class="loader-card">
+        <div class="spinner"></div>
+        <div class="loader-text">Validando acesso...</div>
+      </div>
+    </div>
+
+    <div class="regions">
+      <button class="region active" onclick="selecionarRegiao('ilhabela')">
+        🟢 Ilhabela
+        <span>Disponível</span>
+      </button>
+
+      <button class="region disabled">
+        🟡 Paraty
+        <span>Em breve</span>
+      </button>
+
+      <button class="region disabled">
+        🟡 Angra
+        <span>Em breve</span>
+      </button>
+
+      <button class="region disabled">
+        🟡 Bertioga
+        <span>Em breve</span>
+      </button>
+
+      <div class="region-footer">
+        <button class="footer-btnsup" onclick="abrirWhatsapp()">Suporte</button>
+      </div>
+
+    </div>
+  </div>
+</div>
 
 <div class="system-context">
   <span>Região:</span>
@@ -105,7 +181,7 @@ window.addEventListener("reportUpdated", (e) => {
 </div>
 
 <div class="container">
-  <h1>Histórico Financeiro</h1>
+  <h1>Consulta de saldo:</h1>
 
   <div class="search">
     <input id="code" placeholder="Código da Agência (ex: AGENCIATUR)" />
@@ -192,6 +268,129 @@ window.addEventListener("reportUpdated", (e) => {
     buscar(code); // atualiza os cards do index automaticamente
   }
 });
+
+/* =========================
+   EQUIPAMENTO (DROPDOWN)
+========================= */
+function toggleEquipamentos() {
+  document.getElementById('equipmentDropdown').classList.toggle('open');
+}
+
+document.addEventListener('click', function (e) {
+  const selector = document.querySelector('.equipment-selector');
+  if (!selector.contains(e.target)) {
+    document.getElementById('equipmentDropdown').classList.remove('open');
+  }
+});
+
+/* Selecionar equipamento */
+document.querySelectorAll(".equipment-item").forEach(item => {
+  if (!item.classList.contains("disabled")) {
+    item.addEventListener("click", () => {
+      const value = item.querySelector("span").innerText;
+      document.getElementById("equipamentoAtual").innerText = value;
+
+      document.querySelectorAll(".equipment-item")
+        .forEach(i => i.classList.remove("active"));
+
+      item.classList.add("active");
+      document.getElementById("equipmentDropdown").classList.remove("open");
+    });
+  }
+});
+
+/* Fecha dropdown clicando fora */
+document.addEventListener("click", (e) => {
+  const selector = document.querySelector(".equipment-selector");
+  if (!selector.contains(e.target)) {
+    document.getElementById("equipmentDropdown").classList.remove("open");
+  }
+});
+
+/* =========================
+   SELEÇÃO DE REGIÃO
+========================= */
+function selecionarRegiao(regiao) {
+  const loader = document.getElementById("login-loader");
+  const gate = document.getElementById("region-gate");
+
+  // Evita clique múltiplo
+  if (loader.classList.contains("show")) return;
+
+  loader.style.display = "flex";
+  setTimeout(() => loader.classList.add("show"), 10);
+
+  // Simula validação / redirect
+  setTimeout(() => {
+    gate.classList.add("fade-out");
+
+    // 🔁 ajuste aqui para a rota real
+    setTimeout(() => {
+      window.location.href = "/" + regiao;
+      // ex: /ilhabela
+    }, 600);
+
+  }, 1500);
+}
+
+/* =========================
+   BOTÕES AUXILIARES
+========================= */
+function abrirTermos() {
+  alert("Abrir termos (implementar modal)");
+}
+
+function abrirCadastro() {
+  alert("Abrir cadastro (implementar modal)");
+}
+
+function abrirWhatsapp() {
+  window.open("https://wa.me/5599999999999", "_blank");
+}
+
+/* =========================
+   TOOLTIP MOBILE
+========================= */
+function mostrarTooltip(btn) {
+  btn.classList.toggle("active");
+
+  setTimeout(() => {
+    btn.classList.remove("active");
+  }, 2500);
+}
+
+  document.body.classList.add('gate-open');
+
+  function selecionarRegiao(regiao) {
+    if (!regiao) return;
+
+    const loader = document.getElementById('login-loader');
+    const gate = document.getElementById('region-gate');
+    const systemContext = document.querySelector('.system-context');
+    const container = document.querySelector('.container');
+
+    // mostra loader
+    loader.style.display = 'flex';
+
+    setTimeout(() => {
+      // atualiza system-context
+      systemContext.querySelector('strong').innerText =
+        regiao.charAt(0).toUpperCase() + regiao.slice(1);
+
+      // fecha gate
+      gate.classList.add('hidden');
+      document.body.classList.remove('gate-open');
+
+      // libera sistema
+      systemContext.classList.add('visible');
+      container.classList.add('visible');
+
+      loader.style.display = 'none';
+    }, 1200); // delay elegante
+  }
+
+
+
 </script>
 
 <a href="https://nextur.digital"
