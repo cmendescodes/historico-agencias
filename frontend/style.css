@@ -986,3 +986,18 @@ body.gate-open {
 .action-btn:active::before {
   opacity: 1;
 }
+
+/* =========================
+   ADMIN — LIBERA CONTAINER
+========================= */
+
+body #adminContent .container {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+body #adminContent {
+  opacity: 1;
+  pointer-events: auto;
+}
+
